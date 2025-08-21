@@ -1,0 +1,197 @@
+:root {
+  --yellow-100: #fffde7; /* Amarillo muy pálido */
+  --yellow-200: #fff9c4; /* Amarillo claro */
+  --yellow-300: #fff59d; /* Amarillo más intenso pero suave */
+
+  /* Amarillos estándar / llamativos */
+  --yellow-400: #ffeb3b; /* Amarillo estándar */
+  --yellow-500: #fdd835; /* Amarillo intenso */
+  --yellow-600: #fbc02d; /* Amarillo oscuro / dorado */
+
+  /* Amarillos para resaltar o alertas */
+  --yellow-gold: #ffc107; /* Dorado clásico */
+  --yellow-orange: #ffb300; /* Amarillo anaranjado */
+  --color: black;
+}
+
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body y fuentes */
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--yellow-100);
+  color: var(--color);
+}
+
+/* Header */
+header.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: var(--yellow-600);
+  color: var(--color);
+}
+
+header.bar button {
+  background: var(--yellow-400);
+  color: var(--color);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid black;
+}
+
+header.bar button:hover {
+  background: var(--yellow-100);
+}
+
+/* Grid principal */
+main.container-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas en escritorio */
+  gap: 15px;
+  padding: 20px;
+}
+
+/* Card general */
+.card {
+  background: var(--yellow-200);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.card h3 {
+  padding: 10px 0;
+}
+#calendar {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto; /* permite scroll horizontal si es necesario */
+}
+/* Fullcalendar ocupa todo el alto disponible */
+.fullcalendar {
+  grid-column: span 1;
+}
+
+/* Inputs y botones */
+input,
+select,
+textarea,
+button {
+  width: 100%;
+  margin: 5px 0 10px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--yellow-100);
+}
+
+button {
+  background-color: var(--yellow-gold);
+  color: var(--colors);
+  border: none;
+}
+
+button:hover {
+  background-color: var(--yellow-400);
+}
+
+/* Listas de usuarios y tareas */
+ul {
+  list-style: none;
+}
+
+.task-card {
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+  border: 1px solid var(--color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-card button[data-action="pendiente"] {
+  background: var(--yellow-orange);
+  border: 1px solid var(--color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.task-card button[data-action="realizada"] {
+  background: var(--yellow-500);
+  border: 1px solid var(--color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.task-card button[data-action="aplazada"] {
+  background: var(--yellow-300);
+  border: 1px solid var(--color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.task-card button[data-action="cancelada"] {
+  background: var(--yellow-gold);
+  border: 1px solid var(--color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-card button:hover {
+  background: white;
+}
+
+.task-icon {
+  margin-right: 5px;
+  font-weight: bold;
+}
+/* Row de botones */
+.row {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.row button {
+  flex: 1;
+  padding: 5px;
+  font-size: 0.9rem;
+}
+
+/* Media queries para pantallas pequeñas */
+@media (max-width: 1024px) {
+  main.container-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+  }
+}
+
+@media (max-width: 768px) {
+  main.container-grid {
+    grid-template-columns: 1fr; /* 1 columna */
+  }
+
+  header.bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fullcalendar {
+    grid-column: span 1;
+  }
+}
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+  padding-left: 15px;
+  padding-right: 10px;
+}
+.fc .fc-col-header-cell-cushion {
+  font-size: 0.8rem; /* días de la semana */
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.8rem; /* número del día */
+}
+
+.fc .fc-daygrid-event {
+  font-size: 0.75rem; /* eventos */
+  padding: 2px 4px;
+}

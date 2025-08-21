@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Agenda - Login</title>
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+    <main class="centered">
+      <div class="card">
+        <h1>Agenda</h1>
+        <label>Email</label>
+        <input id="email" type="email" placeholder="correo@ejemplo.com" />
+        <label>Contraseña</label>
+        <input id="password" type="password" placeholder="contraseña" />
+        <div class="row">
+          <button id="loginBtn">Iniciar sesión</button>
+          <button id="signupBtn">Crear cuenta</button>
+        </div>
+        <p id="msg" class="muted"></p>
+      </div>
+    </main>
+    <script type="module" src="js/auth.js"></script>
+  </body>
+</html>

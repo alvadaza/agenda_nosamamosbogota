@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Agenda - Admin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div>Panel Administrador</div>
+      <div><button id="logoutBtn">Cerrar sesión</button></div>
+    </header>
+
+    <main class="container-grid">
+      <section class="card panel">
+        <h3>Crear usuario</h3>
+        <input id="new_nombre" placeholder="Nombre completo" />
+        <input id="new_email" placeholder="Correo" />
+        <input id="new_password" placeholder="Contraseña" type="password" />
+        <label><input id="new_is_admin" type="checkbox" /> Dar rol admin</label>
+        <button id="createUserBtn">Crear usuario</button>
+        <p id="createUserMsg" class="muted"></p>
+        <hr />
+        <h3>Usuarios</h3>
+        <ul id="usersList"></ul>
+      </section>
+
+      <section class="card panel">
+        <h3>Crear tarea / cita</h3>
+        <input id="task_title" placeholder="Título" />
+        <textarea id="task_description" placeholder="Descripción"></textarea>
+        <input id="task_datetime" type="datetime-local" />
+        <select id="task_assign"></select>
+        <button id="createTaskBtn">Crear tarea</button>
+        <p id="createTaskMsg" class="muted"></p>
+        <hr />
+        <h3>Tareas recientes</h3>
+        <ul id="adminTasks"></ul>
+        <ul id="userTasks"></ul>
+      </section>
+
+      <section class="card fullcalendar">
+        <div id="calendar"></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

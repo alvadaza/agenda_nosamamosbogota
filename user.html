@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Agenda - Usuario</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/index.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div>Mi Agenda</div>
+      <span id="userName"></span>
+      <div><button id="logoutBtn">Cerrar sesión</button></div>
+    </header>
+
+    <main class="container-grid user-grid">
+      <section class="card">
+        <h3>Mis tareas</h3>
+        <div id="progressContainer">
+          <div id="progressBar"></div>
+        </div>
+        <ul id="userTasks"></ul>
+      </section>
+
+      <section class="card fullcalendar">
+        <div id="calendar"></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script type="module" src="./js/user.js"></script>
+  </body>
+</html>
