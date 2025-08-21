@@ -61,3 +61,14 @@ signupBtn.addEventListener("click", async () => {
   }
   msg.textContent = "Usuario creado. Revisa tu correo y luego inicia sesión.";
 });
+const togglePass = document.getElementById("togglePass");
+
+togglePass.addEventListener("click", () => {
+  if (passInput.type === "password") {
+    passInput.type = "text";
+    togglePass.textContent = "🙈";
+  } else {
+    passInput.type = "password";
+    togglePass.textContent = "👁️";
+  }
+});
