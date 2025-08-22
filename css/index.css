@@ -21,6 +21,13 @@
   margin: 0;
   padding: 0;
 }
+html,
+body {
+  width: 100%;
+  max-width: 100vw; /* evita desbordes horizontales */
+  overflow-x: hidden; /* oculta cualquier sobrante */
+}
+
 /* Reset y body */
 body {
   font-family: Arial, sans-serif;
@@ -65,8 +72,11 @@ header.bar button:hover {
 /* Contenedor principal */
 .container-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* fluido */
   gap: 20px;
+  width: 100%;
+  max-width: 1600px; /* límite en desktop */
+  margin: 0 auto; /* centra el grid */
   padding: 20px;
 }
 
@@ -76,6 +86,8 @@ header.bar button:hover {
   padding: 15px;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
+  width: 100%;
+  min-width: 0;
 }
 
 /* Titulos */
@@ -191,12 +203,15 @@ h3 {
   opacity: 0.9;
 }
 
-/* Calendar */
-#calendar {
+#calendar,
+.fullcalendar {
+  width: 100%;
   max-width: 100%;
-  height: 600px;
-  overflow-x: auto;
+  min-width: 0; /* evita overflow por contenidos internos */
 }
+#calendar {
+  overflow-x: auto;
+} /* por si
 .fullcalendar {
   grid-column: span 1;
 }
@@ -230,36 +245,49 @@ h3 {
     grid-template-columns: 1fr; /* 1 columna para tablet/móvil */
   }
 }
-
-@media (max-width: 480px) {
-  .bar {
+@media (max-width: 768px) {
+  .container-grid {
+    grid-template-columns: 1fr;
+  }
+  header.bar {
     flex-direction: column;
     gap: 10px;
   }
+}
 
-  .task-card p,
-  .task-card small {
-    font-size: 0.85em;
+@media (max-width: 480px) {
+  .container-grid {
+    padding: 12px;
+  }
+  .card {
+    padding: 12px;
+  }
+  .fc .fc-toolbar-title {
+    font-size: 1rem;
+    padding-left: 15px;
+    padding-right: 10px;
+  }
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.8rem; /* días de la semana */
   }
 
-  .fullcalendar {
-    grid-column: span 1;
+  .fc .fc-daygrid-day-number {
+    font-size: 0.8rem; /* número del día */
   }
-}
-.fc .fc-toolbar-title {
-  font-size: 1rem;
-  padding-left: 15px;
-  padding-right: 10px;
-}
-.fc .fc-col-header-cell-cushion {
-  font-size: 0.8rem; /* días de la semana */
-}
 
-.fc .fc-daygrid-day-number {
-  font-size: 0.8rem; /* número del día */
-}
+  .fc .fc-daygrid-event {
+    font-size: 0.75rem; /* eventos */
+    padding: 2px 4px;
+  }
+  .task-card .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* dos columnas iguales */
+    gap: 8px; /* espacio entre botones */
+  }
 
-.fc .fc-daygrid-event {
-  font-size: 0.75rem; /* eventos */
-  padding: 2px 4px;
+  .task-card button {
+    width: 100%; /* que ocupen todo el ancho */
+    font-size: 0.9em; /* texto legible */
+    padding: 10px;
+  }
 }
