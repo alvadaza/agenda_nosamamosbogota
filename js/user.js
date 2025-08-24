@@ -1,39 +1,66 @@
+// user.js
 import { supabase } from "./api.js";
 
 const ul = document.getElementById("userTasks");
 const calendarEl = document.getElementById("calendar");
 const progressBar = document.getElementById("progressBar");
 let calendar;
+let openFormLi = null; // para asegurar solo un formulario abierto
 
-// Inicialización
-async function init() {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) return (location.href = "index.html");
+// ====== CONFIG CLOUDINARY (rellena con tus valores) ============
+const CLOUDINARY = {
+  cloudName: "TU_CLOUD_NAME",
+  uploadPreset: "TU_UPLOAD_PRESET", // unsigned
+};
 
-  const userId = userData.user.id;
-  console.log("Usuario actual UUID:", userId);
-
-  const userNameSpan = document.getElementById("userName");
-  if (userData.user.user_metadata && userData.user.user_metadata.nombre) {
-    userNameSpan.textContent = `Bienvenido ${userData.user.user_metadata.nombre}`;
-  } else {
-    userNameSpan.textContent = `Bienvenido ${
-      userData.user.email.split("@")[0]
-    }`;
-  }
-  initCalendar();
-  await loadMyTasks(userId);
-  subscribeRealtime(userId);
-
-  // Logout
-
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    location.href = "index.html";
-  });
+// helper subida a Cloudinary
+async function uploadToCloudinary(file) {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY.cloudName}/image/upload`;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY.uploadPreset);
+  const res = await fetch(url, { method: "POST", body: fd });
+  if (!res.ok) throw new Error("Fallo subiendo imagen a Cloudinary");
+  const json = await res.json();
+  return json.secure_url; // URL pública
 }
 
-// Inicializar calendario
+// ====== INIT ===================================================
+async function init() {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    location.href = "index.html";
+    return;
+  }
+
+  const user = userData.user;
+  const userId = user.id;
+
+  // Saludo en header
+  const userNameSpan = document.getElementById("userName");
+  if (userNameSpan) {
+    const nombre =
+      user.user_metadata?.nombre || user.email?.split("@")[0] || "Usuario";
+    userNameSpan.textContent = `Bienvenido ${nombre}`;
+  }
+
+  // Logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.href = "index.html";
+    });
+  }
+
+  // Calendario
+  initCalendar();
+
+  // Cargar y suscribir
+  await loadMyTasks(userId);
+  subscribeRealtime(userId);
+}
+
 function initCalendar() {
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -48,39 +75,35 @@ function initCalendar() {
   calendar.render();
 }
 
-// Obtener clase CSS según estado
+// ====== RENDER / PROGRESO ======================================
 function getTaskClass(estado) {
   switch (estado) {
-    case "pendiente":
-      return "task-card task-pendiente";
     case "realizada":
       return "task-card task-realizada";
     case "aplazada":
       return "task-card task-aplazada";
     case "cancelada":
       return "task-card task-cancelada";
+    case "pendiente":
     default:
       return "task-card task-pendiente";
   }
 }
 
-// Icono según estado
 function getTaskIcon(estado) {
   switch (estado) {
-    case "pendiente":
-      return "⏳";
     case "realizada":
       return "✅";
     case "aplazada":
       return "🕒";
     case "cancelada":
       return "❌";
+    case "pendiente":
     default:
       return "⏳";
   }
 }
 
-// Actualizar barra de progreso
 function updateProgress(tasks) {
   if (!tasks || tasks.length === 0) {
     progressBar.style.width = "0%";
@@ -91,7 +114,7 @@ function updateProgress(tasks) {
   progressBar.style.width = percent + "%";
 }
 
-// Cargar tareas
+// ====== LOAD TASKS =============================================
 async function loadMyTasks(userId) {
   const { data, error } = await supabase
     .from("tareas")
@@ -99,81 +122,240 @@ async function loadMyTasks(userId) {
     .eq("asignado_a", userId)
     .order("fecha", { ascending: true });
 
-  if (error) return console.error("Error cargando tareas:", error);
-  console.log("Tareas encontradas:", data);
+  if (error) {
+    console.error("Error cargando tareas:", error);
+    return;
+  }
 
-  // Actualizar barra de progreso
+  // Progreso
   updateProgress(data);
 
-  // Pintar lista de tareas
+  // Lista
   ul.innerHTML = data
-    .map(
-      (t) => `
-    <li class="${getTaskClass(t.estado)}" data-id="${t.id}">
-      <span class="task-icon">${getTaskIcon(t.estado)}</span>
-      <strong>${t.titulo}</strong>
-      <small>${new Date(t.fecha).toLocaleString()}</small>
-      <p>${t.descripcion || ""}</p>
-      <div class="row">
-        <button data-action="pendiente">Pendiente</button>
-        <button data-action="realizada">Realizada</button>
-        <button data-action="aplazada">Aplazada</button>
-        <button data-action="cancelada">Cancelada</button>
-      </div>
-    </li>
-  `
-    )
+    .map((t) => {
+      const motivoHtml = t.motivo
+        ? `<small><strong>Motivo:</strong> ${t.motivo}</small>`
+        : "";
+      const reprogramadaHtml = t.aplazada_para
+        ? `<small><strong>Reprogramada para:</strong> ${new Date(
+            t.aplazada_para
+          ).toLocaleString()}</small>`
+        : "";
+      const evidenciaHtml = t.evidencia_url
+        ? `<div class="evidencia"><a href="${t.evidencia_url}" target="_blank" rel="noopener"><img class="evidencia-thumb" src="${t.evidencia_url}" alt="evidencia"></a></div>`
+        : "";
+
+      return `
+        <li class="${getTaskClass(t.estado)}" data-id="${t.id}">
+          <span class="task-icon">${getTaskIcon(t.estado)}</span>
+          <strong>${t.titulo}</strong>
+          <small>${new Date(t.fecha).toLocaleString()}</small>
+          <p>${t.descripcion || ""}</p>
+          ${motivoHtml}
+          ${reprogramadaHtml}
+          ${evidenciaHtml}
+          <div class="row two-cols">
+            <button type="button" data-action="pendiente">Pendiente</button>
+            <button type="button" data-action="realizada">Realizada</button>
+            <button type="button" data-action="aplazada">Aplazada</button>
+            <button type="button" data-action="cancelada">Cancelada</button>
+          </div>
+        </li>
+      `;
+    })
     .join("");
 
-  // Pintar calendario
+  // Calendario (usa aplazada_para si existe)
+  const estadoColor = {
+    pendiente: "#ffb300", // amarillo anaranjado
+    aplazada: "#fff59d", // amarillo suave
+    cancelada: "#ffc107", // dorado
+    realizada: "#fdd835", // amarillo intenso
+  };
+
   calendar.removeAllEvents();
   data.forEach((t) => {
+    const start = t.aplazada_para || t.fecha;
     calendar.addEvent({
       id: t.id,
       title: t.titulo,
-      start: t.fecha,
+      start,
       allDay: false,
+      color: estadoColor[t.estado] || "#ffeb3b",
     });
   });
 }
 
-// Cambiar estado de tarea
+// ====== INLINE FORMS ===========================================
+function closeInlineForm() {
+  if (openFormLi) {
+    const f = openFormLi.querySelector(".inline-form");
+    if (f) f.remove();
+    openFormLi = null;
+  }
+}
+
+function createInlineFormMotivo({ showDate }) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "inline-form";
+  wrapper.innerHTML = `
+    <div class="inline-form-body">
+      <label>Motivo</label>
+      <textarea class="if-motivo" rows="3" placeholder="Escribe el motivo..." required></textarea>
+      <div class="if-date-row" style="${showDate ? "" : "display:none"}">
+        <label>Reprogramada para</label>
+        <input type="datetime-local" class="if-date">
+      </div>
+      <div class="row two-cols">
+        <button type="button" class="if-save">Guardar</button>
+        <button type="button" class="if-cancel">Cancelar</button>
+      </div>
+    </div>
+  `;
+  return wrapper;
+}
+
+function createInlineFormRealizada() {
+  const wrapper = document.createElement("div");
+  wrapper.className = "inline-form";
+  wrapper.innerHTML = `
+    <div class="inline-form-body">
+      <label>Evidencia (opcional)</label>
+      <input type="file" class="if-file" accept="image/*">
+      <div class="row two-cols">
+        <button type="button" class="if-save">Guardar</button>
+        <button type="button" class="if-cancel">Cancelar</button>
+      </div>
+    </div>
+  `;
+  return wrapper;
+}
+
+// ====== EVENTOS (delegación) ===================================
 ul.addEventListener("click", async (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
 
   const li = btn.closest("li");
+  if (!li) return;
+
   const id = li.getAttribute("data-id");
-  const action = btn.getAttribute("data-action");
+  const action = btn.getAttribute("data-action"); // pendiente | realizada | aplazada | cancelada
 
-  const { error } = await supabase
-    .from("tareas")
-    .update({ estado: action })
-    .eq("id", id);
+  // Cerrar otro form abierto
+  if (openFormLi && openFormLi !== li) closeInlineForm();
 
-  if (error) return alert("Error actualizando estado: " + error.message);
+  // APLAZADA o CANCELADA -> motivo (y fecha si aplazada)
+  if (action === "aplazada" || action === "cancelada") {
+    // toggle
+    const exists = li.querySelector(".inline-form");
+    if (exists) {
+      exists.remove();
+      openFormLi = null;
+      return;
+    }
+    const needsDate = action === "aplazada";
+    const form = createInlineFormMotivo({ showDate: needsDate });
+    li.appendChild(form);
+    openFormLi = li;
 
-  // Animación y actualización visual
-  li.style.opacity = 0.5;
-  setTimeout(() => {
-    li.className = getTaskClass(action);
-    li.querySelector(".task-icon").textContent = getTaskIcon(action);
-    li.style.opacity = 1;
+    form.querySelector(".if-save").addEventListener("click", async () => {
+      const motivo = form.querySelector(".if-motivo").value.trim();
+      const dateInput = form.querySelector(".if-date");
+      const aplazadaPara = needsDate ? dateInput?.value || null : null;
 
-    // Actualizar barra de progreso
-    const tasks = Array.from(ul.children).map((li) => {
-      const classes = li.className;
-      let estado = "pendiente";
-      if (classes.includes("realizada")) estado = "realizada";
-      else if (classes.includes("aplazada")) estado = "aplazada";
-      else if (classes.includes("cancelada")) estado = "cancelada";
-      return { estado };
+      if (!motivo) {
+        alert("Por favor escribe el motivo.");
+        return;
+      }
+
+      const payload = { estado: action, motivo };
+      if (needsDate) payload.aplazada_para = aplazadaPara;
+
+      const { error } = await supabase
+        .from("tareas")
+        .update(payload)
+        .eq("id", id);
+      if (error) {
+        console.error(error);
+        alert("Error actualizando la tarea");
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      await loadMyTasks(userData.user.id);
+      closeInlineForm();
     });
-    updateProgress(tasks);
-  }, 150);
+
+    form.querySelector(".if-cancel").addEventListener("click", () => {
+      closeInlineForm();
+    });
+
+    return;
+  }
+
+  // REALIZADA -> permitir adjuntar imagen a Cloudinary
+  if (action === "realizada") {
+    // toggle
+    const exists = li.querySelector(".inline-form");
+    if (exists) {
+      exists.remove();
+      openFormLi = null;
+      return;
+    }
+    const form = createInlineFormRealizada();
+    li.appendChild(form);
+    openFormLi = li;
+
+    form.querySelector(".if-save").addEventListener("click", async () => {
+      const file = form.querySelector(".if-file").files[0];
+      let evidenciaUrl = null;
+
+      try {
+        if (file) {
+          evidenciaUrl = await uploadToCloudinary(file);
+        }
+        const payload = { estado: "realizada" };
+        if (evidenciaUrl) payload.evidencia_url = evidenciaUrl;
+
+        const { error } = await supabase
+          .from("tareas")
+          .update(payload)
+          .eq("id", id);
+        if (error) throw error;
+
+        const { data: userData } = await supabase.auth.getUser();
+        await loadMyTasks(userData.user.id);
+        closeInlineForm();
+      } catch (err) {
+        console.error(err);
+        alert("Error marcando como realizada / subiendo evidencia");
+      }
+    });
+
+    form.querySelector(".if-cancel").addEventListener("click", () => {
+      closeInlineForm();
+    });
+
+    return;
+  }
+
+  // PENDIENTE -> actualizar directo
+  if (action === "pendiente") {
+    const { error } = await supabase
+      .from("tareas")
+      .update({ estado: action })
+      .eq("id", id);
+    if (error) {
+      alert("Error actualizando estado: " + error.message);
+      return;
+    }
+    const { data: userData } = await supabase.auth.getUser();
+    await loadMyTasks(userData.user.id);
+  }
 });
 
-// Suscripción en tiempo real
+// ====== REALTIME ===============================================
 function subscribeRealtime(userId) {
   supabase
     .channel("tareas-user-" + userId)
@@ -194,4 +376,5 @@ function subscribeRealtime(userId) {
     .subscribe();
 }
 
+// ====== GO! ====================================================
 window.addEventListener("load", init);

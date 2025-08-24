@@ -130,17 +130,17 @@ ul {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="realizada"] {
-  background: var(--yellow-500);
+  background: #27ae60;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="aplazada"] {
-  background: var(--yellow-300);
+  background: #2980b9;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="cancelada"] {
-  background: var(--yellow-gold);
+  background: #c0392b;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

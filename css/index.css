@@ -146,7 +146,7 @@ h3 {
   color: var(--text-dark);
   transition: background 0.3s;
   border-radius: 10px;
-  border: 1px solid var(--text-dark);
+  border: 2px solid var(--text-dark);
 }
 
 /* Estados de tarea con paleta de amarillos */
@@ -156,17 +156,17 @@ h3 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-aplazada {
-  background-color: var(--yellow-300);
+  background-color: #2980b9;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-realizada {
-  background-color: var(--yellow-500);
+  background-color: #27ae60;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-cancelada {
-  background-color: var(--yellow-gold);
+  background-color: #c0392b;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -176,17 +176,17 @@ h3 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="realizada"] {
-  background: var(--yellow-500);
+  background: #27ae60;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="aplazada"] {
-  background: var(--yellow-300);
+  background: #2980b9;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .task-card button[data-action="cancelada"] {
-  background: var(--yellow-gold);
+  background: #c0392b;
   border: 1px solid var(--color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -237,6 +237,82 @@ h3 {
   background: var(--yellow-500);
   border-radius: var(--border-radius);
   transition: width 0.5s ease;
+}
+/* Modal básico */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+}
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  width: 92%;
+  max-width: 420px;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 12px;
+}
+
+.modal-content label {
+  display: block;
+  font-size: 0.95rem;
+  margin: 10px 0 6px;
+}
+
+.modal-content textarea,
+.modal-content input[type="datetime-local"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background: #fafafa;
+}
+
+.modal-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+#guardarEstadoBtn {
+  background: var(--yellow-500);
+  color: #000;
+  border: 1px solid #000;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#guardarEstadoBtn:hover {
+  background: var(--yellow-400);
+}
+
+#cancelarEstadoBtn {
+  background: #fff;
+  color: #000;
+  border: 1px solid #000;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#cancelarEstadoBtn:hover {
+  background: #f4f4f4;
+}
+
+.hidden {
+  display: none;
 }
 
 /* Responsive */

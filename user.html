@@ -24,12 +24,34 @@
           <div id="progressBar"></div>
         </div>
         <ul id="userTasks"></ul>
+        <div class="task-card">
+
+
       </section>
 
       <section class="card fullcalendar">
         <div id="calendar"></div>
       </section>
     </main>
+<!-- Modal estado -->
+<div id="estadoModal" class="modal hidden">
+  <div class="modal-content">
+    <h2 id="modalTitulo">Actualizar estado</h2>
+
+    <label for="motivoEstado">Motivo</label>
+    <textarea id="motivoEstado" placeholder="Escribe el motivo..." rows="4"></textarea>
+
+    <div id="nuevaFechaWrap" class="hidden">
+      <label for="nuevaFechaEstado">Nueva fecha</label>
+      <input type="datetime-local" id="nuevaFechaEstado" />
+    </div>
+
+    <div class="modal-actions">
+      <button id="cancelarEstadoBtn">Cancelar</button>
+      <button id="guardarEstadoBtn">Guardar</button>
+    </div>
+  </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script type="module" src="./js/user.js"></script>
