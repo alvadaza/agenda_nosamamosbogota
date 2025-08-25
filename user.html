@@ -20,6 +20,18 @@
     <main class="container-grid user-grid">
       <section class="card">
         <h3>Mis tareas</h3>
+        <div class="filters">
+
+          <select id="filterStatus">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="realizada">Realizadas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+
+          <button id="clearFilters">Limpiar filtros</button>
+        </div>
+        </div>
         <div id="progressContainer">
           <div id="progressBar"></div>
         </div>
@@ -27,6 +39,27 @@
         <div class="task-card">
 
 
+      </section>
+           <section class="card dashboard">
+        <h3>Estadísticas</h3>
+        <div class="stats-grid">
+          <div class="stat-card pendientes">
+            <h4>Pendientes</h4>
+            <p id="stat-pendientes">0</p>
+          </div>
+          <div class="stat-card realizadas">
+            <h4>Realizadas</h4>
+            <p id="stat-realizadas">0</p>
+          </div>
+          <div class="stat-card aplazadas">
+            <h4>Aplazadas</h4>
+            <p id="stat-aplazadas">0</p>
+          </div>
+          <div class="stat-card canceladas">
+            <h4>Canceladas</h4>
+            <p id="stat-canceladas">0</p>
+          </div>
+        </div>
       </section>
 
       <section class="card fullcalendar">
@@ -53,7 +86,10 @@
   </div>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    <script type="module" src="./js/user.js"></script>
+
+   
   </body>
+   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script type="module" src="./js/user.js"></script>
+    <script src="config.js"></script>
 </html>

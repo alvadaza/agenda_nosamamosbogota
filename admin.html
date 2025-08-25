@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
+    <style></style>
   </head>
   <body>
     <header class="bar">
@@ -17,15 +18,16 @@
     </header>
 
     <main class="container-grid">
+      <!-- Panel de usuarios -->
       <section class="card panel">
         <h3>Crear usuario</h3>
         <input id="new_nombre" placeholder="Nombre completo" />
         <input id="new_email" placeholder="Correo" />
         <input id="new_password" placeholder="Contraseña" type="password" />
-        <label
-          ><input id="new_is_admin" type="checkbox" />
-          <p>Dar rol admin</p></label
-        >
+        <label>
+          <input id="new_is_admin" type="checkbox" />
+          <p>Dar rol admin</p>
+        </label>
         <button id="createUserBtn">Crear usuario</button>
         <p id="createUserMsg" class="muted"></p>
         <hr />
@@ -33,6 +35,7 @@
         <ul id="usersList"></ul>
       </section>
 
+      <!-- Panel de tareas -->
       <section class="card panel">
         <h3>Crear tarea / cita</h3>
         <input id="task_title" placeholder="Título" />
@@ -42,13 +45,60 @@
         <button id="createTaskBtn">Crear tarea</button>
         <p id="createTaskMsg" class="muted"></p>
         <hr />
-        <h3>Tareas recientes</h3>
+
+        <!-- Filtros -->
+        <h3>Tareas</h3>
+        <div class="filters">
+          <select id="filterUser">
+            <option value="">Todos los usuarios</option>
+            <!-- Aquí se llenan dinámicamente los correos -->
+          </select>
+
+          <select id="filterStatus">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="realizada">Realizadas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+
+          <button id="clearFilters">Limpiar filtros</button>
+        </div>
+
+        <!-- Lista de tareas -->
         <ul id="adminTasks"></ul>
-        <ul id="userTasks"></ul>
       </section>
 
+      <!-- Calendario -->
       <section class="card fullcalendar">
         <div id="calendar"></div>
+      </section>
+      <section class="card dashboard">
+        <h3>Estadísticas</h3>
+
+        <label for="userStatsFilter">Filtrar por usuario:</label>
+        <select id="userStatsFilter">
+          <option value="">Todos los usuarios</option>
+          <!-- Se llenará dinámicamente -->
+        </select>
+
+        <div class="stats-grid">
+          <div class="stat-card pendientes">
+            <h4>Pendientes</h4>
+            <p id="stat-pendientes">0</p>
+          </div>
+          <div class="stat-card realizadas">
+            <h4>Realizadas</h4>
+            <p id="stat-realizadas">0</p>
+          </div>
+          <div class="stat-card aplazadas">
+            <h4>Aplazadas</h4>
+            <p id="stat-aplazadas">0</p>
+          </div>
+          <div class="stat-card canceladas">
+            <h4>Canceladas</h4>
+            <p id="stat-canceladas">0</p>
+          </div>
+        </div>
       </section>
     </main>
 

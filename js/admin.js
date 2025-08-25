@@ -13,6 +13,14 @@ const createTaskBtn = document.getElementById("createTaskBtn");
 const createTaskMsg = document.getElementById("createTaskMsg");
 const adminTasks = document.getElementById("adminTasks");
 
+// --- FILTROS ---
+const filterUser = document.getElementById("filterUser");
+const filterStatus = document.getElementById("filterStatus");
+const clearFiltersBtn = document.getElementById("clearFilters");
+
+// --- FILTRO DE ESTADÍSTICAS ---
+const userStatsFilter = document.getElementById("userStatsFilter");
+
 // --- LOGOUT ---
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
@@ -34,7 +42,6 @@ function getTaskClass(estado) {
       return "task-pendiente";
   }
 }
-
 function getTaskIcon(estado) {
   switch (estado) {
     case "pendiente":
@@ -70,6 +77,22 @@ async function loadUsers() {
   assignedSelect.innerHTML = data
     .map((u) => `<option value="${u.id}">${u.nombre || u.email}</option>`)
     .join("");
+
+  if (filterUser) {
+    filterUser.innerHTML =
+      `<option value="">Todos los usuarios</option>` +
+      data
+        .map((u) => `<option value="${u.id}">${u.nombre || u.email}</option>`)
+        .join("");
+  }
+
+  if (userStatsFilter) {
+    userStatsFilter.innerHTML =
+      `<option value="">Todos los usuarios</option>` +
+      data
+        .map((u) => `<option value="${u.id}">${u.nombre || u.email}</option>`)
+        .join("");
+  }
 }
 
 // --- CREAR USUARIO ---
@@ -101,8 +124,7 @@ createUserBtn.addEventListener("click", async () => {
     });
   if (pErr) console.error("upsert profile error", pErr);
 
-  createUserMsg.textContent =
-    "Usuario creado (puede requerir confirmación por email).";
+  createUserMsg.textContent = "Usuario creado.";
   newName.value = newEmail.value = newPassword.value = "";
   loadUsers();
 });
@@ -143,55 +165,64 @@ createTaskBtn.addEventListener("click", async () => {
   loadTasks();
 });
 
-// --- CARGAR TAREAS CON NOMBRE DE USUARIO ---
+// --- CARGAR TAREAS ---
 async function loadTasks() {
-  // Traer tareas
   const { data: tasks, error: taskErr } = await supabase
     .from("tareas")
     .select("*")
     .order("fecha", { ascending: false });
-
-  // Traer usuarios
   const { data: users, error: usersErr } = await supabase
     .from("profiles")
     .select("id, nombre");
 
   if (taskErr || usersErr) return console.error(taskErr || usersErr);
 
-  // Mapear nombre completo
-  const tasksWithUserName = tasks.map((t) => ({
+  let tasksWithUserName = tasks.map((t) => ({
     ...t,
     nombreAsignado:
       users.find((u) => u.id === t.asignado_a)?.nombre || t.asignado_a,
   }));
 
-  // Pintar lista
+  // aplicar filtros de lista
+  const uFilter = filterUser?.value || "";
+  const sFilter = filterStatus?.value || "";
+  if (uFilter)
+    tasksWithUserName = tasksWithUserName.filter(
+      (t) => t.asignado_a === uFilter
+    );
+  if (sFilter)
+    tasksWithUserName = tasksWithUserName.filter((t) => t.estado === sFilter);
+
   adminTasks.innerHTML = tasksWithUserName
     .map(
       (t) => `
-      <li class="task-card ${getTaskClass(t.estado)}" data-id="${t.id}">
-        <span class="task-icon">${getTaskIcon(t.estado)}</span>
-        <strong>${t.titulo}</strong> — ${new Date(
-        t.fecha
-      ).toLocaleString()}<br/>
-        <small>Asignado: ${t.nombreAsignado} — Estado: ${
+    <li class="task-card ${getTaskClass(t.estado)}" data-id="${t.id}">
+    
+      <span class="task-icon">${getTaskIcon(t.estado)}</span>
+      <strong>${t.titulo}</strong> — ${new Date(t.fecha).toLocaleString()}<br/>
+      <small>Asignado: ${t.nombreAsignado} — Estado: ${
         t.estado || "pendiente"
       }</small> 
-      <div>
-      <p>PUEDES CAMBIAR DE ESTADO</P>
+      <div><p><br>PUEDES CAMBIAR EL ESTADO</p></div>
+      <div class="row">
+        <button data-action="pendiente">Pendiente</button>
+        <button data-action="realizada">Realizada</button>
+        <button data-action="aplazada">Aplazada</button>
+        <button data-action="cancelada">Cancelada</button>
       </div>
-        <div class="row">
-          <button data-action="pendiente">Pendiente</button>
-          <button data-action="realizada">Realizada</button>
-          <button data-action="aplazada">Aplazada</button>
-          <button data-action="cancelada">Cancelada</button>
-        </div>
-      </li>
-    `
+    </li>`
     )
     .join("");
 
-  // Actualizar calendario
+  // aplicar filtro para estadísticas (separado del de tareas)
+  let statsTasks = [...tasks];
+  const statsUserFilter = userStatsFilter?.value || "";
+  if (statsUserFilter)
+    statsTasks = statsTasks.filter((t) => t.asignado_a === statsUserFilter);
+
+  loadStatistics(statsTasks);
+
+  // calendario
   const events = tasksWithUserName.map((t) => ({
     id: t.id,
     title: t.titulo,
@@ -202,7 +233,6 @@ async function loadTasks() {
       estado: t.estado || "pendiente",
     },
   }));
-
   if (window.calendar) {
     window.calendar.removeAllEvents();
     window.calendar.addEventSource(events);
@@ -213,18 +243,14 @@ async function loadTasks() {
 adminTasks.addEventListener("click", async (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
-
   const li = btn.closest("li");
   const id = li.getAttribute("data-id");
   const action = btn.getAttribute("data-action");
-
   const { error } = await supabase
     .from("tareas")
     .update({ estado: action })
     .eq("id", id);
   if (error) return alert("Error actualizando estado: " + error.message);
-
-  // Animación y recarga
   li.style.opacity = 0.5;
   setTimeout(() => loadTasks(), 150);
 });
@@ -264,10 +290,35 @@ function subscribeRealtime() {
     .subscribe();
 }
 
+// --- ESTADÍSTICAS ---
+function loadStatistics(tasks) {
+  const stats = { pendiente: 0, realizada: 0, aplazada: 0, cancelada: 0 };
+
+  tasks.forEach((t) => {
+    if (stats[t.estado] !== undefined) stats[t.estado]++;
+  });
+
+  document.getElementById("stat-pendientes").textContent = stats.pendiente;
+  document.getElementById("stat-realizadas").textContent = stats.realizada;
+  document.getElementById("stat-aplazadas").textContent = stats.aplazada;
+  document.getElementById("stat-canceladas").textContent = stats.cancelada;
+}
+
 // --- INICIALIZACIÓN ---
 window.addEventListener("load", async () => {
   initCalendar();
   await loadUsers();
   await loadTasks();
   subscribeRealtime();
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", () => {
+      if (filterUser) filterUser.value = "";
+      if (filterStatus) filterStatus.value = "";
+      loadTasks();
+    });
+  }
+  if (filterUser) filterUser.addEventListener("change", loadTasks);
+  if (filterStatus) filterStatus.addEventListener("change", loadTasks);
+  if (userStatsFilter) userStatsFilter.addEventListener("change", loadTasks);
 });
