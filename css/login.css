@@ -33,6 +33,30 @@ body {
   justify-content: center;
   align-items: center;
 }
+header {
+  border-bottom: 3px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  padding: 10px 20px;
+  top: 0px;
+  margin-block: 50px;
+}
+
+header img {
+  height: 100px;
+  margin-right: 15px;
+}
+
+header h1 {
+  font-size: 3rem;
+  color: black;
+  margin: 0;
+}
+head p {
+  font-size: 3rem;
+}
 
 /* Contenedor centrado */
 main.centered {
@@ -140,5 +164,18 @@ main.centered {
   .card .row button {
     font-size: 0.9rem;
     padding: 8px;
+  }
+  header {
+    margin-block: 30px;
+  }
+  header img {
+    height: 60px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    color: black;
+    margin: 0;
   }
 }
