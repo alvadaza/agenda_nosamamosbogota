@@ -231,7 +231,10 @@ ul.addEventListener("click", async (e) => {
     `;
     li.appendChild(wrapper);
     openFormLi = li;
-
+    const CLOUDINARY = {
+      cloudName: "dl7kjajkv", // tu cloud
+      uploadPreset: "tareas_upload", // tu upload preset unsigned
+    };
     wrapper.querySelector(".if-save").addEventListener("click", async () => {
       const file = wrapper.querySelector(".if-file").files[0];
       let evidenciaUrl = null;
