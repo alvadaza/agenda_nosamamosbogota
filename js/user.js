@@ -190,6 +190,9 @@ ul.addEventListener("click", async (e) => {
     wrapper.className = "inline-form";
     wrapper.innerHTML = `
       <textarea class="if-motivo" rows="3" placeholder="Escribe el motivo..." required></textarea>
+      <small class="date-hint" style="color:black; font-size:12px; display:block; margin-top:2px; margin-bottom: 3px;">
+      Ingrese fecha nueva
+    </small>
       <input type="datetime-local" class="if-date" style="${
         action === "aplazada" ? "" : "display:none"
       }">
@@ -203,6 +206,9 @@ ul.addEventListener("click", async (e) => {
       const motivo = wrapper.querySelector(".if-motivo").value.trim();
       const aplazadaPara = wrapper.querySelector(".if-date")?.value || null;
       if (!motivo) return alert("Escribe el motivo");
+      if (!aplazadaPara) {
+        return alert("⚠️ Ingresa una fecha nueva");
+      }
 
       const payload = { estado: action, motivo };
       if (action === "aplazada") payload.aplazada_para = aplazadaPara;
