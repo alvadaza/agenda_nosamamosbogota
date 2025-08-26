@@ -20,6 +20,17 @@ const clearFiltersBtn = document.getElementById("clearFilters");
 
 // --- FILTRO DE ESTADÍSTICAS ---
 const userStatsFilter = document.getElementById("userStatsFilter");
+// --- MODAL DE EDICIÓN ---
+const editTaskModal = document.getElementById("editTaskModal");
+const editTaskTitle = document.getElementById("editTaskTitle");
+const editTaskDesc = document.getElementById("editTaskDesc");
+const editTaskDatetime = document.getElementById("editTaskDatetime");
+const editTaskAssign = document.getElementById("editTaskAssign");
+const saveEditTaskBtn = document.getElementById("saveEditTaskBtn");
+const cancelEditTaskBtn = document.getElementById("cancelEditTaskBtn");
+const closeModalBtn = editTaskModal.querySelector(".close-modal");
+
+let currentEditTaskId = null;
 
 // --- LOGOUT ---
 document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -197,7 +208,6 @@ async function loadTasks() {
     .map(
       (t) => `
     <li class="task-card ${getTaskClass(t.estado)}" data-id="${t.id}">
-    
       <span class="task-icon">${getTaskIcon(t.estado)}</span>
       <strong>${t.titulo}</strong> — ${new Date(t.fecha).toLocaleString()}<br/>
       <small>Asignado: ${t.nombreAsignado} — Estado: ${
@@ -210,6 +220,7 @@ async function loadTasks() {
         <button data-action="aplazada">Aplazada</button>
         <button data-action="cancelada">Cancelada</button>
       </div>
+      <button class="edit-task-btn">Editar</button>
     </li>`
     )
     .join("");
@@ -241,18 +252,100 @@ async function loadTasks() {
 
 // --- CAMBIAR ESTADO ---
 adminTasks.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  const li = btn.closest("li");
+  const li = e.target.closest("li");
+  if (!li) return;
   const id = li.getAttribute("data-id");
-  const action = btn.getAttribute("data-action");
+
+  // Cambiar estado
+  const btn = e.target.closest("button[data-action]");
+  if (btn) {
+    const action = btn.getAttribute("data-action");
+    const { error } = await supabase
+      .from("tareas")
+      .update({ estado: action })
+      .eq("id", id);
+    if (error) return alert("Error actualizando estado: " + error.message);
+    li.style.opacity = 0.5;
+    setTimeout(() => loadTasks(), 150);
+    return;
+  }
+
+  // Abrir modal de edición
+  if (e.target.classList.contains("edit-task-btn")) {
+    currentEditTaskId = id;
+
+    // Cargar datos de la tarea
+    const { data: taskData, error } = await supabase
+      .from("tareas")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return alert("Error cargando tarea: " + error.message);
+
+    editTaskTitle.value = taskData.titulo;
+    editTaskDesc.value = taskData.descripcion || "";
+    editTaskDatetime.value = taskData.fecha.slice(0, 16);
+
+    // Cargar usuarios en select
+    const { data: users } = await supabase.from("profiles").select("id,nombre");
+    editTaskAssign.innerHTML = users
+      .map(
+        (u) =>
+          `<option value="${u.id}" ${
+            u.id === taskData.asignado_a ? "selected" : ""
+          }>${u.nombre}</option>`
+      )
+      .join("");
+
+    editTaskModal.style.display = "flex";
+  }
+});
+
+saveEditTaskBtn.addEventListener("click", async () => {
+  if (!currentEditTaskId) return;
+
+  const newTitle = editTaskTitle.value.trim();
+  const newDesc = editTaskDesc.value.trim();
+  const newDate = editTaskDatetime.value;
+  const newAssign = editTaskAssign.value;
+
+  if (!newTitle || !newDate || !newAssign) {
+    return alert("Título, fecha y usuario asignado son obligatorios");
+  }
+
   const { error } = await supabase
     .from("tareas")
-    .update({ estado: action })
-    .eq("id", id);
-  if (error) return alert("Error actualizando estado: " + error.message);
-  li.style.opacity = 0.5;
-  setTimeout(() => loadTasks(), 150);
+    .update({
+      titulo: newTitle,
+      descripcion: newDesc,
+      fecha: newDate,
+      asignado_a: newAssign,
+    })
+    .eq("id", currentEditTaskId);
+
+  if (error) return alert("Error actualizando tarea: " + error.message);
+
+  editTaskModal.style.display = "none";
+  currentEditTaskId = null;
+  loadTasks();
+});
+
+cancelEditTaskBtn.addEventListener("click", () => {
+  editTaskModal.style.display = "none";
+  currentEditTaskId = null;
+});
+
+closeModalBtn.addEventListener("click", () => {
+  editTaskModal.style.display = "none";
+  currentEditTaskId = null;
+});
+
+// Cerrar modal si clic fuera del contenido
+window.addEventListener("click", (e) => {
+  if (e.target === editTaskModal) {
+    editTaskModal.style.display = "none";
+    currentEditTaskId = null;
+  }
 });
 
 // --- CALENDARIO ---
