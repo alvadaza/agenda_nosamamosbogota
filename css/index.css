@@ -180,7 +180,7 @@ h3 {
 .if-date {
   margin-bottom: 15px;
   width: 100%;
-  height: auto;
+  height: 40px;
 }
 .if-save {
   margin-bottom: 10px;
