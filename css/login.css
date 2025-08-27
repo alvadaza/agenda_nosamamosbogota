@@ -213,7 +213,7 @@ main.centered {
 }
 
 /* Estilos para horizontal */
-@media (max-width: 1200px) and (orientation: landscape) {
+@media (max-width: 800px) and (orientation: landscape) {
   header {
     display: none;
   }
