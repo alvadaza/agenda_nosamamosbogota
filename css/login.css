@@ -198,19 +198,6 @@ main.centered {
   }
 }
 /* Estilos para vertical */
-@media (max-width: 480px) and (orientation: portrait) {
-  .card {
-    padding: 20px 15px;
-  }
-
-  .card .row button {
-    font-size: 0.9rem;
-    padding: 8px;
-  }
-  header {
-    display: none;
-  }
-}
 
 /* Estilos para horizontal */
 @media (max-width: 800px) and (orientation: landscape) {
