@@ -40,6 +40,16 @@
         <p id="msg" class="muted"></p>
       </div>
     </main>
+    <!-- Modal de instalación -->
+    <div id="install-modal" style="display: none">
+      <div id="overlay"></div>
+      <div id="install-box">
+        <p>¿Deseas instalar la aplicación?</p>
+        <button id="install-btn">📲 Instalar Aplicación</button>
+        <button id="cancel-install" class="cancel">✖ Cerrar</button>
+      </div>
+    </div>
+
     <script type="module" src="js/auth.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
@@ -48,6 +58,52 @@
           .then((reg) => console.log("Service Worker registrado", reg))
           .catch((err) => console.error("Error al registrar el SW", err));
       }
+    </script>
+    <script>
+      let deferredPrompt;
+      const installModal = document.getElementById("install-modal");
+      const installBtn = document.getElementById("install-btn");
+      const cancelBtn = document.getElementById("cancel-install");
+
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+
+      if (isStandalone) {
+        installModal.style.display = "none";
+      }
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        if (!isStandalone) {
+          // Muestra el modal flotante
+          installModal.style.display = "block";
+        }
+
+        installBtn.addEventListener("click", () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+              console.log("✅ Usuario aceptó instalar");
+            } else {
+              console.log("❌ Usuario rechazó la instalación");
+            }
+            deferredPrompt = null;
+            installModal.style.display = "none";
+          });
+        });
+
+        cancelBtn.addEventListener("click", () => {
+          installModal.style.display = "none";
+        });
+      });
+
+      window.addEventListener("appinstalled", () => {
+        console.log("✅ App instalada");
+        installModal.style.display = "none";
+      });
     </script>
   </body>
 </html>
