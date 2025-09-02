@@ -72,3 +72,10 @@ togglePass.addEventListener("click", () => {
     togglePass.textContent = "👁️";
   }
 });
+const { error } = await supabase.auth.admin.deleteUser("USER_ID_AQUI");
+
+if (error) {
+  console.error("Error borrando usuario:", error.message);
+} else {
+  console.log("Usuario eliminado de auth.users");
+}

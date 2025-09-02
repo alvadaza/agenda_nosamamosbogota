@@ -8,7 +8,6 @@ const newName = document.getElementById("new_nombre");
 const newEmail = document.getElementById("new_email");
 const newPassword = document.getElementById("new_password");
 const newIsAdmin = document.getElementById("new_is_admin");
-const assignedSelect = document.getElementById("task_assign");
 const createTaskBtn = document.getElementById("createTaskBtn");
 const createTaskMsg = document.getElementById("createTaskMsg");
 const adminTasks = document.getElementById("adminTasks");
@@ -85,9 +84,46 @@ async function loadUsers() {
     )
     .join("");
 
-  assignedSelect.innerHTML = data
-    .map((u) => `<option value="${u.id}">${u.nombre || u.email}</option>`)
-    .join("");
+  // Reemplazar la carga del select múltiple con checkboxes
+  const userCheckboxList = document.getElementById("userCheckboxList");
+  if (userCheckboxList) {
+    userCheckboxList.innerHTML = data
+      .map(
+        (u) => `
+        <div class="user-item">
+          <input class="checkbox" type="checkbox" id="user-${
+            u.id
+          }" name="assigned_users" value="${u.id}">
+          <label for="user-${u.id}">${u.nombre || u.email}</label>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  // Configurar event listener para "Seleccionar todos" después de crear los checkboxes
+  const selectAllCheckbox = document.getElementById("selectAll");
+  if (selectAllCheckbox) {
+    // Remover event listeners anteriores para evitar duplicados
+    selectAllCheckbox.replaceWith(selectAllCheckbox.cloneNode(true));
+    const newSelectAll = document.getElementById("selectAll");
+
+    newSelectAll.addEventListener("change", function () {
+      const checkboxes = document.querySelectorAll(
+        'input[name="assigned_users"]'
+      );
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = this.checked;
+      });
+    });
+  }
+
+  // Para el select de edición (mantenerlo)
+  if (editTaskAssign) {
+    editTaskAssign.innerHTML = data
+      .map((u) => `<option value="${u.id}">${u.nombre || u.email}</option>`)
+      .join("");
+  }
 
   if (filterUser) {
     filterUser.innerHTML =
@@ -146,34 +182,62 @@ createTaskBtn.addEventListener("click", async () => {
   const title = document.getElementById("task_title").value.trim();
   const description = document.getElementById("task_description").value.trim();
   const datetime = document.getElementById("task_datetime").value;
-  const assigned_to = document.getElementById("task_assign").value;
-  const { data: me } = await supabase.auth.getUser();
 
-  if (!title || !datetime || !assigned_to) {
-    createTaskMsg.textContent = "Título, fecha/hora y usuario son obligatorios";
+  // Obtener usuarios seleccionados por checkbox en lugar de select
+  const assigned_to = Array.from(
+    document.querySelectorAll('input[name="assigned_users"]:checked')
+  ).map((checkbox) => checkbox.value);
+
+  const { data: me, error: userErr } = await supabase.auth.getUser();
+  if (userErr || !me?.user) {
+    createTaskMsg.textContent =
+      "Error obteniendo usuario: " + (userErr?.message || "No logueado");
+    return;
+  }
+  const user = me.user;
+
+  if (!title || !datetime || assigned_to.length === 0) {
+    createTaskMsg.textContent =
+      "Título, fecha/hora y al menos un usuario son obligatorios";
     return;
   }
 
-  const { error } = await supabase.from("tareas").insert([
-    {
-      titulo: title,
-      descripcion: description,
-      fecha: datetime,
-      asignado_a: assigned_to,
-      creado_por: me.user.id,
-      estado: "pendiente",
-    },
-  ]);
+  // Creamos una tarea por cada usuario seleccionado
+  const tareas = assigned_to.map((uid) => ({
+    titulo: title,
+    descripcion: description,
+    fecha: datetime,
+    creado_por: user.id,
+    asignado_a: uid,
+    estado: "pendiente",
+  }));
 
-  if (error)
-    return (createTaskMsg.textContent =
-      "Error creando tarea: " + error.message);
+  const { error } = await supabase.from("tareas").insert(tareas);
 
-  createTaskMsg.textContent = "Tarea creada.";
+  if (error) {
+    createTaskMsg.textContent = "Error creando tareas: " + error.message;
+    return;
+  }
+
+  createTaskMsg.textContent = "Tareas creadas para los usuarios seleccionados.";
   document.getElementById("task_title").value = "";
   document.getElementById("task_description").value = "";
   document.getElementById("task_datetime").value = "";
-  loadTasks();
+
+  // Desmarcar todos los checkboxes
+  document
+    .querySelectorAll('input[name="assigned_users"]')
+    .forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+
+  // Desmarcar "Seleccionar todos"
+  const selectAllCheckbox = document.getElementById("selectAll");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+  }
+
+  await loadTasks();
 });
 
 // --- CARGAR TAREAS ---
